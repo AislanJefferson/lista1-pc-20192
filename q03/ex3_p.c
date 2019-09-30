@@ -5,15 +5,16 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-int main() {
+int main(int argc, char *argv[]) {
+    int processes_qty = argc == 2 ? *argv[1] : 100;
     pid_t pid = getpid();
     struct timespec before, after;
     pid_t childpid;
     clock_gettime(CLOCK_MONOTONIC, &before);
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < processes_qty; ++i) {
         if ((childpid = fork()) == 0) {
-            printf("Sou filho!\n");
+            printf("Sou filho! %d\n",i);
             exit(0);
         } else if (childpid > 0) {
             wait(&childpid);

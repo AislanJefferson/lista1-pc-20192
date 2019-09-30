@@ -6,19 +6,22 @@
 #include <sys/types.h>
 #include <pthread.h>
 
-void *printa() {
-    printf("Sou filho!\n");
-
+void *printa(void *arg) {
+    printf("Sou filho! %d\n", *((int *) arg));
+    free(arg);
     pthread_exit(0);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    int threads_qty = argc == 2 ? *argv[1] : 100;
     pid_t pid = getpid();
     struct timespec before, after;
     clock_gettime(CLOCK_MONOTONIC, &before);
     pthread_t thread;
-    for (int i = 0; i < 100; ++i) {
-        pthread_create(&thread, NULL, printa, NULL);
+    for (int i = 0; i < threads_qty; ++i) {
+        int *param = malloc(sizeof(i));
+        *param = i;
+        pthread_create(&thread, NULL, printa, param);
         pthread_join(thread, NULL);
     }
     printf("Sou pai! %d\n", pid);
