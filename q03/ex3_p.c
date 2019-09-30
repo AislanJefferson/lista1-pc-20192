@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 
 int main(int argc, char *argv[]) {
-    int processes_qty = argc == 2 ? *argv[1] : 100;
+    int processes_qty = argc == 2 ? *atoi(argv[1]) : 100;
     pid_t pid = getpid();
     struct timespec before, after;
     pid_t childpid;
