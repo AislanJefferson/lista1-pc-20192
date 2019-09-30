@@ -13,7 +13,7 @@ void *printa(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-    int threads_qty = argc == 2 ? *atoi(argv[1]) : 100;
+    int threads_qty = argc == 2 ? atoi(argv[1]) : 100;
     pid_t pid = getpid();
     struct timespec before, after;
     clock_gettime(CLOCK_MONOTONIC, &before);
