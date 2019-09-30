@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include <sys/types.h>
 #include <pthread.h>
