@@ -1,16 +1,18 @@
-class CountDownLatch{
-    
+public class CountDownLatch{
+
     private int count;
-    
-    public CountDownLatch() {
-	// TODO Auto-generated constructor stub
+    public CountDownLatch(int count) {
+           this.count=count;
     }
-    
-    private void await() {
-	while(count != 0) {
-	    synchronized(this) {
-		wait();
-	    }
-	}
+
+    public synchronized void await() throws InterruptedException {
+           if(count>0)
+                  this.wait();
+    }
+
+    public synchronized void countDown() {
+           count--;
+           if(count == 0)
+                  this.notifyAll();
     }
 }
