@@ -121,8 +121,10 @@ public class CacheMap<K, V> implements Map<K, V> {
 			if (this.remoteMap.containsKey(key)) {
 				value = this.remoteMap.get(key);
 				// INICIO PARTE OPCIONAL DE ADICIONAR DADO LIDO AO CACHE
+				if (this.cache.size() >= CACHE_MAX_SIZE) {
+					this.flusher.flush();
+				}
 				this.cache.put((K) key, value);
-
 				// FIM PARTE OPCIONAL
 			}
 		} else {
