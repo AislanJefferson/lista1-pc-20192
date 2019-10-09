@@ -2,26 +2,24 @@ package q04;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class CacheMap<K, V> implements Map<K, V> {
-	private HashMap<K, V> cache;
+	private Map<K, V> cache;
 	private Map<K, V> remoteMap;
 
 	private ReadWriteLock locks;
 
 	//
 	private final int MAX_TTL;
-	private volatile int ttlCounter; // NAO usado atualmente
 	private final int CACHE_MAX_SIZE;
-	private AtomicInteger currentCacheSize; // Conta o numero de entradas atualmente no cache
 
 	private Timer timer;
 
@@ -36,7 +34,7 @@ public class CacheMap<K, V> implements Map<K, V> {
 			counter = new AtomicInteger(0);
 		}
 
-		private void flush() {
+		private synchronized void flush() {
 			System.out.println("Fazendo flush!");
 			remoteMap.putAll(cache);
 			cache.clear();
@@ -71,7 +69,6 @@ public class CacheMap<K, V> implements Map<K, V> {
 		this.remoteMap = remoteMap;
 		this.MAX_TTL = ttl;
 		this.CACHE_MAX_SIZE = cacheSize;
-		this.currentCacheSize = new AtomicInteger(0);
 		flusher = new Flusher();
 		Thread t1 = new Thread(flusher);
 		t1.start();
@@ -87,33 +84,31 @@ public class CacheMap<K, V> implements Map<K, V> {
 
 			}
 		}, new Date(), 1000);
-		cache = new HashMap<K, V>(cacheSize);
+		cache = new ConcurrentHashMap<K, V>(cacheSize);
 	}
 
 	@Override
 	public int size() {
-		// TODO FAZER
-		return 0;
+		this.flusher.flush();
+		return this.remoteMap.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		// TODO FAZER
-		return false;
+		// TODO
+		return this.remoteMap.isEmpty() && this.cache.isEmpty();
 	}
 
 	@Override
 	public boolean containsKey(Object key) {
-		// TODO FAZER
-		// this.cache.containsKey(key) || this.remoteMap.containsKey(key);
-		return false;
+		// TODO
+		return this.cache.containsKey(key) || this.remoteMap.containsKey(key);
 	}
 
 	@Override
 	public boolean containsValue(Object value) {
 		// TODO FAZER
-		// this.cache.containsValue(value) || this.remoteMap.containsValue(value);
-		return false;
+		return this.cache.containsValue(value) || this.remoteMap.containsValue(value);
 	}
 
 	@Override
@@ -127,7 +122,7 @@ public class CacheMap<K, V> implements Map<K, V> {
 				value = this.remoteMap.get(key);
 				// INICIO PARTE OPCIONAL DE ADICIONAR DADO LIDO AO CACHE
 				this.cache.put((K) key, value);
-				currentCacheSize.incrementAndGet();
+
 				// FIM PARTE OPCIONAL
 			}
 		} else {
@@ -138,14 +133,14 @@ public class CacheMap<K, V> implements Map<K, V> {
 
 	@Override
 	public V put(K key, V value) {
-		flusher.flush();
-		// TODO FAZER
-		return null;
+		if (this.cache.size() >= CACHE_MAX_SIZE) {
+			flusher.flush();
+		}
+		return this.cache.put(key, value);
 	}
 
 	@Override
 	public V remove(Object key) {
-		// TODO FAZER
 		return null;
 	}
 
