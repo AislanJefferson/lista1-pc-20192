@@ -8,18 +8,19 @@
 
 int main(int argc, char *argv[]) {
     int processes_qty = argc == 2 ? atoi(argv[1]) : 100;
+    printf("Programa criador de %d Processos\n", processes_qty);
     pid_t pid = getpid();
     struct timespec before, after;
     pid_t childpid[processes_qty];
     clock_gettime(CLOCK_MONOTONIC, &before);
     for (int i = 0; i < processes_qty; ++i) {
         if ((childpid[i] = fork()) == 0) {
-            printf("Sou filho! %d\n", i);
-            sleep(10);
+            //printf("Sou filho! %d\n", i);
+            sleep(5);
             exit(0);
         }
     }
-    printf("Sou pai! %d\n", pid);
+    printf("Sou pai! %d e esperando filhos de 5 segundos\n", pid);
     for (int i = 0; i < processes_qty; ++i) {
         wait(&childpid[i]);
     }

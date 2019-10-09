@@ -7,14 +7,15 @@
 #include <pthread.h>
 
 void *printa(void *arg) {
-    printf("Sou filho! %d\n", *((int *) arg));
+    //printf("Sou filho! %d\n", *((int *) arg));
     free(arg);
-    sleep(10);
+    sleep(5);
     pthread_exit(0);
 }
 
 int main(int argc, char *argv[]) {
     int threads_qty = argc == 2 ? atoi(argv[1]) : 100;
+    printf("Programa criador de %d Threads\n", threads_qty);
     pid_t pid = getpid();
     struct timespec before, after;
     clock_gettime(CLOCK_MONOTONIC, &before);
@@ -24,7 +25,7 @@ int main(int argc, char *argv[]) {
         *param = i;
         pthread_create(&thread[i], NULL, printa, param);
     }
-    printf("Sou pai! %d\n", pid);
+    printf("Sou pai! %d e esperando filhos de 5 segundos\n", pid);
     for (int i = 0; i < threads_qty; ++i) {
         pthread_join(thread[i], NULL);
     }
