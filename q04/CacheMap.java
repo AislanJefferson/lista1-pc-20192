@@ -7,16 +7,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class CacheMap<K, V> implements Map<K, V> {
 	private HashMap<K, V> cache;
 	private Map<K, V> remoteMap;
 
+	private ReadWriteLock locks;
+
 	//
 	private final int MAX_TTL;
 	private volatile int ttlCounter; // NAO usado atualmente
 	private final int CACHE_MAX_SIZE;
-	private volatile int currentCacheSize = 0; // Conta o numero de entradas atualmente no cache
+	private AtomicInteger currentCacheSize; // Conta o numero de entradas atualmente no cache
 
 	private Timer timer;
 
@@ -24,23 +29,64 @@ public class CacheMap<K, V> implements Map<K, V> {
 	private long lastChangedLocally = 0;
 	private long lastFlushedToRemote = 0;
 
+	private class Flusher implements Runnable {
+		AtomicInteger counter;
+
+		public Flusher() {
+			counter = new AtomicInteger(0);
+		}
+
+		private void flush() {
+			System.out.println("Fazendo flush!");
+			remoteMap.putAll(cache);
+			cache.clear();
+			lastFlushedToRemote = System.currentTimeMillis();
+			System.out.println("Flush efetuado!");
+			counter.set(0);
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+
+			while (counter.getAndIncrement() < MAX_TTL) {
+				try {
+					System.out.println(counter.toString());
+					synchronized (this) {
+						this.wait();
+					}
+				} catch (InterruptedException e) {
+					System.out.println("Fechando...");
+				}
+			}
+			this.flush();
+			this.run();
+		}
+	}
+
+	private Flusher flusher;
+
 	public CacheMap(Map<K, V> remoteMap, int cacheSize, int ttl) {
+		this.locks = new ReentrantReadWriteLock(true);
 		this.remoteMap = remoteMap;
 		this.MAX_TTL = ttl;
 		this.CACHE_MAX_SIZE = cacheSize;
+		this.currentCacheSize = new AtomicInteger(0);
+		flusher = new Flusher();
+		Thread t1 = new Thread(flusher);
+		t1.start();
 		timer = new Timer(true);
-		// Vai ficar rodando a cada 10 segundos
+		// Vai ficar rodando a cada 1 segundo
 		timer.scheduleAtFixedRate(new TimerTask() {
 
 			@Override
 			public void run() {
-				System.out.println("Fazendo flush!");
-				remoteMap.putAll(cache);
-				cache.clear();
-				lastFlushedToRemote = System.currentTimeMillis();
-				System.out.println("Flush efetuado!");
+				synchronized (flusher) {
+					flusher.notify();
+				}
+
 			}
-		}, new Date(), ttl * 1000);
+		}, new Date(), 1000);
 		cache = new HashMap<K, V>(cacheSize);
 	}
 
@@ -81,7 +127,7 @@ public class CacheMap<K, V> implements Map<K, V> {
 				value = this.remoteMap.get(key);
 				// INICIO PARTE OPCIONAL DE ADICIONAR DADO LIDO AO CACHE
 				this.cache.put((K) key, value);
-				++currentCacheSize;
+				currentCacheSize.incrementAndGet();
 				// FIM PARTE OPCIONAL
 			}
 		} else {
@@ -92,6 +138,7 @@ public class CacheMap<K, V> implements Map<K, V> {
 
 	@Override
 	public V put(K key, V value) {
+		flusher.flush();
 		// TODO FAZER
 		return null;
 	}
