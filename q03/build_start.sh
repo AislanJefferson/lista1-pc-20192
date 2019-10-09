@@ -5,6 +5,11 @@ gcc ex3_p.c -o ex3_p
 gcc -pthread ex3_t.c -o ex3_t
 echo "Executando os binarios"
 echo " "
-/usr/bin/time ./ex3_p $1
+if [ "$(uname)" == "Darwin" ]; then
+   args=-l
+else
+   args=-v
+fi
+/usr/bin/time $args ./ex3_p $1
 echo " "
-/usr/bin/time ./ex3_t $1
+/usr/bin/time $args ./ex3_t $1
