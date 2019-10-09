@@ -1,18 +1,29 @@
 public class CountDownLatch{
 
     private int count;
+    private final Object objSync = new Object();
+
     public CountDownLatch(int count) {
-           this.count=count;
+           synchronized(objSync){
+              this.count=count;
+           }    
     }
 
-    public synchronized void await() throws InterruptedException {
-           if(count>0)
-                  this.wait();
+    public void await() throws InterruptedException {
+           synchronized(objSync){
+              while(count>0){
+                 objSync.wait();
+              }
+           }
+           
     }
 
-    public synchronized void countDown() {
-           count--;
-           if(count == 0)
-                  this.notifyAll();
+    public void countDown() {
+           synchronized(objSync){
+              count--;
+              if(count == 0){
+                     objSync.notifyAll();
+              }   
+           }
     }
 }
