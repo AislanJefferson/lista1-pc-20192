@@ -112,7 +112,7 @@ public class Main {
     private volatile boolean locked = false;
 
     public void lock() {
-	if (locked) {
+	while(locked) {
 	    fila.add(Thread.currentThread());
 	    LockSupport.park();
 	}
@@ -121,7 +121,7 @@ public class Main {
 
     public void unlock() {
 	locked = false;
-	if(!fila.isEmpty()) {
+	while(!fila.isEmpty()) {
         	Thread threadToRun = fila.remove(0);
         	LockSupport.unpark(threadToRun);
 	}
