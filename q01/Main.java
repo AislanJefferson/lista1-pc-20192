@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.LockSupport;
 import java.util.Random;
 
 public class Main {
@@ -18,7 +15,6 @@ public class Main {
 	t1.start();
 
 	t0.join();
-	;
 	t1.join();
     }
 
@@ -45,7 +41,7 @@ public class Main {
 		    }
 
 		    int produced = new Random().nextInt(11);
-			
+
 		    this.data.put(produced);
 		    System.err.println("value produced: " + produced);
 		    this.data.notifyAll();
@@ -88,7 +84,7 @@ public class Main {
 	// we hold only positive numbers, so -1
 	// indicates the buffer is available
 	private int value = -1;
-	
+
 	public void put(int v) {
 	    if (v < 0) {
 		throw new IllegalArgumentException("Cannot hold negative numbers");
@@ -106,28 +102,5 @@ public class Main {
 	    return value == -1;
 	}
     }
-
-	public static class Lock {
-    private List<Thread> fila = new ArrayList<Thread>();
-    private volatile boolean locked = false;
-
-    public void lock() {
-	while(locked) {
-	    fila.add(Thread.currentThread());
-	    LockSupport.park();
-	}
-	locked = true;
-    }
-
-    public void unlock() {
-	locked = false;
-	while(!fila.isEmpty()) {
-        	Thread threadToRun = fila.remove(0);
-        	LockSupport.unpark(threadToRun);
-	}
-
-    }
-}
-
 
 }
