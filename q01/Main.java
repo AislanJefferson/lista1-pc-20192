@@ -1,5 +1,7 @@
 import java.util.Random;
 
+import sun.misc.Lock;
+
 public class Main {
 
     public static void main(String args[]) throws InterruptedException {
@@ -7,6 +9,7 @@ public class Main {
 	Data data = new Data();
 	Producer producer = new Producer(data);
 	Consumer consumer = new Consumer(data);
+	Lock lock = new Lock();
 
 	Thread t0 = new Thread(producer, "producer-thread");
 	Thread t1 = new Thread(consumer, "consumer-thread");
@@ -16,6 +19,9 @@ public class Main {
 
 	t0.join();
 	t1.join();
+	
+	lock.lock();
+	lock.unlock();	
     }
 
     public static class Producer implements Runnable {
