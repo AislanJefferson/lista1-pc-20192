@@ -88,26 +88,24 @@ public class CacheMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public int size() {
+	public synchronized int size() {
 		this.flusher.flush();
 		return this.remoteMap.size();
 	}
 
 	@Override
-	public boolean isEmpty() {
-		// TODO
-		return this.remoteMap.isEmpty() && this.cache.isEmpty();
+	public synchronized boolean isEmpty() {
+		this.flusher.flush();
+		return this.remoteMap.isEmpty();
 	}
 
 	@Override
-	public boolean containsKey(Object key) {
-		// TODO
+	public synchronized boolean containsKey(Object key) {
 		return this.cache.containsKey(key) || this.remoteMap.containsKey(key);
 	}
 
 	@Override
-	public boolean containsValue(Object value) {
-		// TODO FAZER
+	public synchronized boolean containsValue(Object value) {
 		return this.cache.containsValue(value) || this.remoteMap.containsValue(value);
 	}
 
@@ -134,7 +132,7 @@ public class CacheMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public V put(K key, V value) {
+	public synchronized V put(K key, V value) {
 		if (this.cache.size() >= CACHE_MAX_SIZE) {
 			flusher.flush();
 		}
@@ -142,13 +140,19 @@ public class CacheMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
-	public V remove(Object key) {
-		return null;
+	public synchronized V remove(Object key) {
+		if(cache.containsKey(key)){
+			return this.cache.remove(key);
+		}
+		else {
+			return this.remoteMap.remove(key);
+		}
 	}
 
 	@Override
-	public void clear() {
-		// TODO FAZER
+	public synchronized void clear() {
+		this.cache.clear();
+		this.remoteMap.clear();
 
 	}
 
