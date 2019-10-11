@@ -7,7 +7,7 @@
 #include <sys/wait.h>
 
 int main(int argc, char *argv[]) {
-    int processes_qty = argc == 2 ? atoi(argv[1]) : 100;
+    int processes_qty = argc == 2 ? atoi(argv[1]) : 10000;
     printf("Programa criador de %d Processos\n", processes_qty);
     pid_t pid = getpid();
     struct timespec before, after;
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     struct rusage usage_childs, usage_self;
     getrusage(RUSAGE_CHILDREN, &usage_childs);
     getrusage(RUSAGE_SELF, &usage_self);
-    long max_memory = (usage_self.ru_maxrss + usage_childs.ru_maxrss) / 1024;
+    long max_memory = (usage_self.ru_maxrss + usage_childs.ru_maxrss * processes_qty) / 1024;
     printf("Took %ld ms and peak used %ldKB of memory\n", msec_diff, max_memory);
     return 0;
 }
